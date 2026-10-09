@@ -1,22 +1,36 @@
 <template>
-  <div class="flex min-h-dvh flex-col items-center justify-center gap-4 p-6">
-    <h1 class="text-2xl font-semibold">Nuxt Template</h1>
-    <p class="max-w-md text-center text-sm" style="color: var(--text-secondary)">
-      Start building — see the README for what each folder is for.
-    </p>
-    <button
-      class="cursor-pointer rounded-xl px-6 py-3 text-sm font-semibold"
-      style="background: var(--color-primary); color: var(--text-on-primary)"
-      @click="useToast('success', 'Toast system is working!')"
-    >
-      Test toast
-    </button>
+  <div>
+    <ClientOnly>
+      <WorldStage @api="onApi" />
+    </ClientOnly>
+    <WorldLoadingScreen
+      :visible="!world.loading.entered"
+      :progress="world.loading.progress"
+      :ready="world.loading.ready"
+      :failed="world.loading.failed"
+      @enter="enter"
+    />
+    <HudRoot v-if="world.loading.entered" />
+    <ShopRoot />
   </div>
 </template>
 
 <script setup lang="ts">
-useSeoMeta({
-  title: "Home",
-  description: "",
-});
+import type { WorldApi } from "~/utils/types/world";
+import { useWorldStore } from "~/stores/world";
+import { WORLD_API_KEY } from "~/utils/world/apiKey";
+
+useHead({ htmlAttrs: { class: "world" } });
+
+const world = useWorldStore();
+const api = shallowRef<WorldApi | null>(null);
+provide(WORLD_API_KEY, api);
+
+function onApi(next: WorldApi) {
+  api.value = next;
+}
+
+function enter() {
+  api.value?.enter();
+}
 </script>

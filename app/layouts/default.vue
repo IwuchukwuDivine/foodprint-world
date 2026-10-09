@@ -1,11 +1,5 @@
 <template>
-  <div>
-    <!-- <AppHeader /> -->
+  <div class="role-customer">
     <slot />
-    <!-- <AppFooter /> -->
   </div>
 </template>
-
-<script setup lang="ts"></script>
-
-<style scoped></style>

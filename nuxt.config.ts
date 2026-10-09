@@ -1,10 +1,13 @@
 import tailwindcss from "@tailwindcss/vite";
-// https://nuxt.com/docs/api/configuration/nuxt-config
+
+const SITE_URL = process.env.SITE_URL || "https://world.foodprint.com.ng";
+const TITLE = "Foodprint World: walk Awka, order from a kitchen, watch your rider arrive";
+const DESCRIPTION =
+  "A playable 3D Awka. Walk the streets, step into real local kitchens, place an order and watch a Foodprint rider bring it to your door.";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
-  // ssr: false, // uncomment for SPA-only apps (dashboards, admin panels)
 
   modules: [
     "@nuxt/eslint",
@@ -13,89 +16,87 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "pinia-plugin-persistedstate/nuxt",
     "nuxt-lucide-icons",
-    // Optional — add when needed:
-    // "@nuxtjs/sitemap",
-    // "@vite-pwa/nuxt",
   ],
 
-  // ── Fill in your app identity here ──
   app: {
     head: {
-      title: "",
+      title: TITLE,
       htmlAttrs: { lang: "en" },
       meta: [
         { charset: "utf-8" },
         {
           name: "viewport",
-          content:
-            "width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover",
+          content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
         },
-        { name: "description", content: "" },
-        { name: "keywords", content: "" },
-        { name: "theme-color", content: "" },
-        { name: "author", content: "" },
-
-        // Open Graph
-        { property: "og:site_name", content: "" },
+        { name: "description", content: DESCRIPTION },
+        { name: "theme-color", content: "#fb6b05" },
+        { name: "author", content: "Foodprint" },
+        { property: "og:site_name", content: "Foodprint World" },
         { property: "og:type", content: "website" },
-        { property: "og:title", content: "" },
-        { property: "og:description", content: "" },
-        { property: "og:url", content: "" },
-        { property: "og:image", content: "" },
-
-        // Twitter Card
+        { property: "og:title", content: TITLE },
+        { property: "og:description", content: DESCRIPTION },
+        { property: "og:url", content: SITE_URL },
+        { property: "og:image", content: `${SITE_URL}/og.png` },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "" },
-        { name: "twitter:description", content: "" },
-        { name: "twitter:image", content: "" },
+        { name: "twitter:title", content: TITLE },
+        { name: "twitter:description", content: DESCRIPTION },
+        { name: "twitter:image", content: `${SITE_URL}/og.png` },
       ],
-      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+      link: [
+        { rel: "icon", type: "image/png", href: "/brand/fp-mark.png" },
+        {
+          rel: "preload",
+          as: "font",
+          type: "font/woff2",
+          href: "/fonts/Fredoka-Regular.woff2",
+          crossorigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          as: "font",
+          type: "font/woff2",
+          href: "/fonts/Fredoka-SemiBold.woff2",
+          crossorigin: "anonymous",
+        },
+      ],
     },
   },
 
+  fonts: {
+    families: [
+      { name: "Fredoka", src: "/fonts/Fredoka-Regular.woff2", weight: 400, global: true },
+      { name: "Fredoka", src: "/fonts/Fredoka-Medium.woff2", weight: 500, global: true },
+      { name: "Fredoka", src: "/fonts/Fredoka-SemiBold.woff2", weight: 600, global: true },
+      { name: "Fredoka", src: "/fonts/Fredoka-Bold.woff2", weight: 700, global: true },
+    ],
+  },
+
   devServer: {
-    port: 3000, // change per project so dev servers don't clash
+    port: 3003,
     host: "0.0.0.0",
   },
 
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: [
-        '@tanstack/vue-query',
-        '@vueuse/core',
-        'lucide-vue-next',],
+      include: ["@tanstack/vue-query", "@vueuse/core", "three"],
     },
   },
 
-  // ── Custom fonts (drop .ttf files in app/assets/fonts/) ──
-  // fonts: {
-  //   families: [
-  //     { name: "YourFont", src: "~/assets/fonts/YourFont-Regular.ttf", weight: 400 },
-  //     { name: "YourFont", src: "~/assets/fonts/YourFont-Medium.ttf", weight: 500 },
-  //     { name: "YourFont", src: "~/assets/fonts/YourFont-SemiBold.ttf", weight: 600 },
-  //     { name: "YourFont", src: "~/assets/fonts/YourFont-Bold.ttf", weight: 700 },
-  //   ],
-  // },
+  routeRules: {
+    // Kenney GLBs never change once committed; let the browser keep them.
+    "/models/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
+  },
 
-  // ── Env vars (mirror them in .env.example) ──
   runtimeConfig: {
-    // Server-only keys (not exposed to client)
     public: {
-      siteUrl: process.env.SITE_URL || "",
+      siteUrl: SITE_URL,
     },
   },
 
   image: {
     quality: 80,
     format: ["webp", "jpg"],
-    screens: {
-      xs: 320,
-      sm: 640,
-      md: 768,
-      lg: 1024,
-      xl: 1280,
-    },
   },
 
   typescript: {

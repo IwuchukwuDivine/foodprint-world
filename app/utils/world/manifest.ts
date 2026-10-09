@@ -1,0 +1,133 @@
+/**
+ * Every model the world can load, keyed as "<pack>/<file>". The key doubles
+ * as the URL under /models/. Keep this list in step with
+ * scripts/models-allowlist.mjs.
+ */
+export const MODEL_KEYS = [
+  // roads
+  "roads/road-straight",
+  "roads/road-bend",
+  "roads/road-intersection",
+  "roads/road-crossroad",
+  "roads/road-end",
+  "roads/road-roundabout",
+  "roads/road-crossing",
+  "roads/tile-low",
+  "roads/light-square",
+  "roads/light-curved",
+  "roads/road-sign-stop",
+  "roads/road-sign-street",
+  "roads/traffic-light",
+  "roads/electricity-pole",
+  "roads/dumpster",
+  "roads/construction-cone",
+  "roads/construction-barrier",
+  // suburban
+  "suburban/building-type-a",
+  "suburban/building-type-b",
+  "suburban/building-type-c",
+  "suburban/building-type-d",
+  "suburban/building-type-e",
+  "suburban/building-type-g",
+  "suburban/building-type-h",
+  "suburban/building-type-i",
+  "suburban/building-type-k",
+  "suburban/building-type-m",
+  "suburban/fence",
+  "suburban/fence-low",
+  "suburban/planter",
+  "suburban/tree-large",
+  "suburban/tree-small",
+  "suburban/driveway-short",
+  // commercial
+  "commercial/building-a",
+  "commercial/building-b",
+  "commercial/building-c",
+  "commercial/building-d",
+  "commercial/building-e",
+  "commercial/building-f",
+  "commercial/building-g",
+  "commercial/building-h",
+  "commercial/building-i",
+  "commercial/building-k",
+  "commercial/building-skyscraper-a",
+  "commercial/building-skyscraper-e",
+  "commercial/detail-awning",
+  "commercial/detail-awning-wide",
+  "commercial/detail-parasol-a",
+  "commercial/detail-parasol-b",
+  "commercial/low-detail-building-a",
+  "commercial/low-detail-building-b",
+  "commercial/low-detail-building-c",
+  "commercial/low-detail-building-d",
+  "commercial/low-detail-building-e",
+  "commercial/low-detail-building-f",
+  "commercial/low-detail-building-g",
+  "commercial/low-detail-building-h",
+  "commercial/low-detail-building-i",
+  "commercial/low-detail-building-j",
+  "commercial/low-detail-building-k",
+  "commercial/low-detail-building-l",
+  "commercial/low-detail-building-m",
+  "commercial/low-detail-building-n",
+  "commercial/low-detail-building-wide-a",
+  "commercial/low-detail-building-wide-b",
+  // cars
+  "cars/delivery",
+  "cars/sedan",
+  "cars/suv",
+  "cars/taxi",
+  "cars/van",
+  "cars/hatchback-sports",
+  "cars/truck",
+  "cars/police",
+  // nature
+  "nature/tree_palm",
+  "nature/tree_palmBend",
+  "nature/tree_palmDetailedShort",
+  "nature/tree_palmDetailedTall",
+  "nature/tree_palmShort",
+  "nature/tree_palmTall",
+  "nature/tree_default",
+  "nature/tree_detailed",
+  "nature/tree_oak",
+  "nature/plant_bush",
+  "nature/plant_bushDetailed",
+  "nature/plant_bushLarge",
+  "nature/rock_largeA",
+  "nature/rock_smallA",
+  "nature/rock_smallB",
+  "nature/grass",
+  "nature/grass_large",
+  "nature/flower_yellowA",
+  "nature/flower_redA",
+  "nature/flower_purpleA",
+  // characters
+  "characters/character-male-a",
+  "characters/character-male-c",
+  "characters/character-female-b",
+  "characters/character-female-e",
+] as const;
+
+export type ModelKey = (typeof MODEL_KEYS)[number];
+
+export const modelUrl = (key: ModelKey | string) => `/models/${key}.glb`;
+
+export const CHARACTER_KEYS: ModelKey[] = [
+  "characters/character-male-a",
+  "characters/character-male-c",
+  "characters/character-female-b",
+  "characters/character-female-e",
+];
+
+export const PLAYER_MODEL: ModelKey = "characters/character-male-a";
+
+export const NPC_CAR_KEYS: ModelKey[] = [
+  "cars/sedan",
+  "cars/suv",
+  "cars/taxi",
+  "cars/van",
+  "cars/hatchback-sports",
+  "cars/truck",
+  "cars/police",
+];

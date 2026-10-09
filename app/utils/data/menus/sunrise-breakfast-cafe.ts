@@ -1,0 +1,87 @@
+import type { MenuSection } from "~/utils/types/shop";
+
+/** Sunrise Breakfast Café menu, transcribed from the demo seed. */
+export const sunriseBreakfastCafe: MenuSection[] = [
+  {
+    id: "sbc-section-breakfast-plates",
+    name: "Breakfast Plates",
+    items: [
+      {
+        id: "sbc-pancake-stack",
+        name: "Pancake Stack",
+        description: "Five fluffy pancakes, maple syrup, butter.",
+        priceKobo: 250_000,
+        photoUrl: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "breakfast",
+        optionGroups: [],
+      },
+      {
+        id: "sbc-french-toast-berries",
+        name: "French Toast & Berries",
+        description: "Brioche French toast with banana and blueberries.",
+        priceKobo: 280_000,
+        photoUrl: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "breakfast",
+        optionGroups: [],
+      },
+      {
+        id: "sbc-full-english",
+        name: "Full English",
+        description: "Fried egg, sausage, bacon, beans and toast.",
+        priceKobo: 350_000,
+        photoUrl: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "breakfast",
+        optionGroups: [],
+      },
+      {
+        id: "sbc-avocado-breakfast-bowl",
+        name: "Avocado Breakfast Bowl",
+        description: "Soft-boiled egg, avocado, greens, seeds.",
+        priceKobo: 300_000,
+        photoUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "healthy-salads",
+        optionGroups: [],
+      },
+    ],
+  },
+  {
+    id: "sbc-section-coffee",
+    name: "Coffee",
+    items: [
+      {
+        id: "sbc-cappuccino",
+        name: "Cappuccino",
+        description: "Double shot, steamed milk, cocoa dust.",
+        priceKobo: 150_000,
+        photoUrl: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "drinks-smoothies",
+        optionGroups: [],
+      },
+      {
+        id: "sbc-flat-white",
+        name: "Flat White",
+        description: "Silky microfoam over a double ristretto.",
+        priceKobo: 160_000,
+        photoUrl: "https://images.unsplash.com/photo-1497636577773-f1231844b336?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "drinks-smoothies",
+        optionGroups: [],
+      },
+      {
+        id: "sbc-artisan-sourdough-loaf",
+        name: "Artisan Sourdough Loaf",
+        description: "Baked in-house, 24-hour ferment.",
+        priceKobo: 220_000,
+        photoUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=600&q=80&auto=format&fit=crop",
+        available: true,
+        category: "pastries-cakes",
+        optionGroups: [],
+      },
+    ],
+  },
+];
