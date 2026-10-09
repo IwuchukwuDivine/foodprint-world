@@ -179,6 +179,12 @@ function walkHome() {
 .hud-order__actions:empty {
   display: none;
 }
+/* Touch screens: clear the joystick on the left and the tray pill on the right. */
+@media (pointer: coarse) and (max-width: 1023px) {
+  .hud-order {
+    bottom: calc(184px + var(--bottom));
+  }
+}
 @media (min-width: 1024px) {
   .hud-order {
     left: auto;

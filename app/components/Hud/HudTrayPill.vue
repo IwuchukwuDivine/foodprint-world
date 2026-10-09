@@ -51,6 +51,15 @@ const showHistory = computed(() => noSheet.value && (order.history.length > 0 ||
 .hud-tray__pill {
   box-shadow: var(--shadow-float);
 }
+/* Touch screens: keep the pill out of the joystick's corner. */
+@media (pointer: coarse) and (max-width: 1023px) {
+  .hud-tray {
+    left: auto;
+    right: 16px;
+    bottom: calc(32px + var(--bottom));
+    justify-content: flex-end;
+  }
+}
 .hud-tray__history {
   display: grid;
   place-items: center;

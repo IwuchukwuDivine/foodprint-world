@@ -160,6 +160,14 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+/* Narrow phones: tuck the map under the top bar and ticker instead of beside them. */
+@media (max-width: 639px) {
+  .hud-minimap {
+    top: calc(96px + var(--top));
+    width: 92px;
+    height: 92px;
+  }
+}
 @media (min-width: 640px) {
   .hud-minimap {
     width: 160px;
