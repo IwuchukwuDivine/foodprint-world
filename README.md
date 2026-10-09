@@ -1,97 +1,47 @@
-# Nuxt Starter Template
+# Foodprint World
 
-A reusable starter for new Nuxt projects — Nuxt 4 + TypeScript + Tailwind v4 + Pinia (persisted) + Vue Query + Lucide icons. Clone it, fill in the blanks, and start building.
+A playable 3D Awka in the browser. Walk the streets as a third-person character, step into one of twelve real local kitchens, browse the menu, place an order and watch a Foodprint rider bring it to your door on a motorbike, then hand it over with the delivery code.
 
-> **Want a PWA?** Use the [`pwa` branch](../../tree/pwa) instead — same template plus `@vite-pwa/nuxt`, a manifest ready to fill in, and icon generation via `npm run generate-pwa-assets`. When clicking **Use this template**, tick **Include all branches**, then `git checkout pwa` in your new repo.
+Everything is a simulation for now: no backend, no payments, no accounts. The kitchens, menus, prices and fees are the same demo data the Foodprint app seeds, and the order moves through the same statuses the real product uses.
 
-## Getting Started
+Live at the URL in `nuxt.config.ts` once deployed; locally it runs on http://localhost:3003.
 
-Click **Use this template** (top right on GitHub) to create your new project repo, then:
+## Run it
 
 ```bash
 npm install
-cp .env.example .env
+node scripts/fetch-kenney.mjs   # downloads the CC0 model packs into public/models (once)
 npm run dev
 ```
 
-## Fill In Per Project
+`?debug` on the URL shows an fps and draw-call badge and exposes `window.__world` with the engine's internals and a `step(seconds)` helper for driving the simulation from the console.
 
-1. **`package.json`** → change `name`
-2. **`nuxt.config.ts`** → fill in the empty `app.head` section (title, description, OG/Twitter tags, theme color), set the `devServer.port`, and add env vars to `runtimeConfig`
-3. **`app/assets/css/main.css`** → replace the placeholder palette in `@theme` and the semantic tokens (`:root` / `.dark`) with your brand colors
-4. **`.env.example`** → document the project's env vars, then `cp .env.example .env`
-5. **`public/`** → replace `favicon.ico`, add your logo and icons
-6. **Fonts** → drop `.ttf` files in `app/assets/fonts/`, uncomment the `fonts` block in `nuxt.config.ts`, and update `--font-family` in `main.css`
+## How it is built
 
-## Folder Guide
+- **Nuxt 4 + Tailwind v4**, the Foodprint design tokens, Fredoka and 18 kit components ported from the main app, so every sheet and HUD widget looks like Foodprint.
+- **three.js** for the world: an instanced low-poly Awka built from a hand-authored tile map (`app/utils/world/tileMap.ts`) with the eight launch districts, Aroma Junction and Amawbia roundabouts, Eke Awka market, Unizik gate, Government House and Ekwueme Square.
+- **Kenney CC0 packs** for roads, buildings, cars and trees (see `CREDITS.md`), a CC-BY motorbike, and Ready Player Me bodies with motion-captured idle/walk/run clips for every person, streamed at runtime.
+- A **fixed-timestep game loop** drives the player, traffic, pedestrians, the rider and the order state machine; the Vue layer only sees 10 Hz snapshots through a Pinia store.
+- **The order simulation** (`app/composables/world/useOrderSim.ts`) times itself off persisted timestamps, so reloading mid-delivery resumes with the rider where they should be.
+- People and vehicles are solid: cars yield to anyone in front, pedestrians keep to the pavement edge and step around each other, and the player cannot walk through a bike.
+
+## Controls
+
+- Desktop: WASD or arrows to walk, Shift to run, E or Enter at a kitchen door, Esc to close, drag to orbit, wheel to zoom.
+- Phone: joystick to walk, tap a kitchen's label to walk there, drag to look, pinch to zoom.
+
+## Layout
 
 ```
 app/
-├── app.vue              # Root component — skip link, toast, layout + page
-├── error.vue            # Global error page (404 / 500)
-├── assets/
-│   ├── css/main.css     # Tailwind + brand theme tokens + reusable classes
-│   └── fonts/           # Custom font files (.ttf), wired via nuxt.config fonts block
-├── components/          # Auto-imported Vue components (PascalCase)
-│   │                    # Prefix base UI with App: AppButton, AppInput, AppToast
-│   └── App/             # Base UI components (App/Button.vue → <AppButton />)
-├── composables/         # Auto-imported composables — useX pattern
-│   │                    # Composable = needs reactivity, lifecycle, or store access
-│   ├── useApp.ts        # App store accessor (storeToRefs wrapper)
-│   ├── useToast.ts      # useToast("success" | "error" | "warning" | "info", msg)
-│   └── useMounted.ts    # SSR-safe mounted flag
-├── layouts/             # Page layouts — must contain <slot />
-│   └── default.vue      # Base layout; add admin.vue, no-auth.vue, etc. as needed
-├── middleware/          # Route guards — apply via definePageMeta({ middleware: "x" })
-│   └── auth.ts          # Example login guard
-├── pages/               # File-based routing — keep lean, delegate to components
-├── plugins/             # Nuxt plugins
-│   └── vue-query.ts     # TanStack Query setup (SSR hydration included)
-├── store/               # Pinia stores — setup syntax, persisted to localStorage
-│   └── app.ts           # Global app store (toasts, auth state)
-└── utils/               # Auto-imported pure functions — one per file, default export
-    │                    # Util = pure in/out, no Vue reactivity
-    ├── types/           # Shared TypeScript types (never inline complex types)
-    ├── constants/       # App constants and static data
-    ├── rules.ts         # Form validation rules (required, email, password)
-    └── ...              # goTo, goBack, copy, formatDate, formatPrice, log, uuid
-
-server/
-└── api/                 # Nitro API routes — file name maps to URL
-                         # health.get.ts → GET /api/health
-
-public/                  # Static files served as-is (favicon, robots.txt, images)
-
-.claude/
-└── skills/
-    └── nuxt-conventions/  # Claude Code skill — enforces these project conventions
-                           # (directory structure, script setup, styling, stores)
-```
-
-## Conventions
-
-- **Always `<script setup lang="ts">`** — never Options API
-- **Auto-imports** — don't import `ref`, `computed`, `useRouter`, composables, or utils; only import types, third-party libs, and subfolder components
-- **Pages are lean** — business logic lives in composables, markup in components
-- **No repeated styles** — extract shared styles into `main.css`; use CSS variables from the theme, never hardcode colors
-- **Types live in `utils/types/`**, constants in `utils/constants/`
-- **`v-if` always pairs with `v-else`** — never leave a blank state
-- **Wrap browser-only components in `<ClientOnly>`** when SSR is on
-
-## Optional Modules (add when needed)
-
-| Module | Purpose |
-|--------|---------|
-| `@vite-pwa/nuxt` | PWA / installable app — already set up on the `pwa` branch |
-| `@nuxtjs/sitemap` | Sitemap generation (needs `site.url` in config) |
-| `@supabase/supabase-js` | Supabase backend |
-| `resend` | Transactional email (server-side) |
-
-## Scripts
-
-```bash
-npm run dev        # dev server
-npm run build      # production build
-npm run generate   # static site generation
-npm run preview    # preview production build
+  components/World   canvas, loading screen
+  components/Hud     top bar, ticker, minimap, joystick, order card, tray pill
+  components/Shop    storefront, item, tray, checkout, payment, handoff, rating, history
+  composables/world  renderer, assets, avatars, loop, city builder, player, camera,
+                     traffic, pedestrians, rider bike, order sim, smoke, lights
+  utils/world        tile map, grid, A*, road graph, placements, instancing, materials
+  utils/data         the twelve kitchens and their menus
+  stores             tray, order (persisted), shop, world, settings
+scripts/             asset fetch and GLB inspection
+public/models/       the fetched models (committed)
 ```

@@ -198,7 +198,7 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
           for (let i = 0; i < n; i++) update(1 / 60);
           render(seconds);
         };
-        (window as unknown as { __world: unknown }).__world = { city, player, camera, input, ctx, assets, avatars, registry, api, dayNight, van, traffic, order, sim, step, THREE };
+        (window as unknown as { __world: unknown }).__world = { city, player, camera, input, ctx, assets, avatars, registry, api, dayNight, van, traffic, order, sim, step, loop, THREE };
       }
     } catch (err) {
       console.error("world failed to boot", err);

@@ -95,6 +95,7 @@ export function useAvatars(assets: Assets) {
     } catch {
       failed.value = true;
     }
+    if (failed.value) await assets.loadKeys(CHARACTER_KEYS);
     ready.value = true;
   }
 

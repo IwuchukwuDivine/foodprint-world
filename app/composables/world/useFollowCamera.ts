@@ -39,7 +39,7 @@ export function useFollowCamera(camera: THREE.PerspectiveCamera, element: HTMLEl
 
   /** Whether a point sits inside (or hugs) any nearby building box, below roof height. */
   function blockedAt(x: number, y: number, z: number, near: Aabb[]): boolean {
-    if (y > 5.2) return false;
+    if (y > 4.3) return false;
     for (const b of near) {
       if (x > b.minX - 0.25 && x < b.maxX + 0.25 && z > b.minZ - 0.25 && z < b.maxZ + 0.25) return true;
     }

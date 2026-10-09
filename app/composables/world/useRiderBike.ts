@@ -47,7 +47,7 @@ export function useRiderBike(assets: Assets, avatars: Avatars, scene: THREE.Scen
   const riderRoot = rider.root;
   if (rider.realistic) applyRidePose(riderRoot);
   else rider.animator.play("drive");
-  riderRoot.position.set(0, 0.62, -0.1);
+  riderRoot.position.set(0, -0.3, -0.25);
   vehicle.group.add(riderRoot);
 
   // Delivery box with the mark on three sides, and a hazard light on top.

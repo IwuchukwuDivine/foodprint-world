@@ -16,14 +16,14 @@ export interface RidePose {
 }
 
 export const DEFAULT_RIDE_POSE: RidePose = {
-  spine: 0.28,
-  thigh: -1.45,
-  thighSpread: 0.28,
-  knee: 1.5,
-  upperArm: -0.95,
-  armSpread: 0.35,
-  forearm: 0.45,
-  head: -0.2,
+  spine: 0.22,
+  thigh: 1.25,
+  thighSpread: 0.75,
+  knee: -1.6,
+  upperArm: 1.0,
+  armSpread: 0.75,
+  forearm: 1.35,
+  head: -0.3,
 };
 
 export function applyRidePose(root: THREE.Object3D, pose: RidePose = DEFAULT_RIDE_POSE) {
@@ -32,18 +32,18 @@ export function applyRidePose(root: THREE.Object3D, pose: RidePose = DEFAULT_RID
     const b = bone(name);
     if (b) b.rotation.set(x, y, z);
   };
-  set("Spine", pose.spine * 0.5);
-  set("Spine1", pose.spine * 0.5);
-  set("Spine2", pose.spine * 0.3);
+  set("Spine", pose.spine);
+  set("Spine1", pose.spine);
+  set("Spine2", pose.spine * 0.55);
   set("Head", pose.head);
-  set("LeftUpLeg", pose.thigh, 0, pose.thighSpread);
-  set("RightUpLeg", pose.thigh, 0, -pose.thighSpread);
+  set("LeftUpLeg", pose.thigh, 0, -pose.thighSpread);
+  set("RightUpLeg", pose.thigh, 0, pose.thighSpread);
   set("LeftLeg", pose.knee);
   set("RightLeg", pose.knee);
-  set("LeftFoot", -0.3);
-  set("RightFoot", -0.3);
-  set("LeftArm", pose.upperArm, 0, pose.armSpread);
-  set("RightArm", pose.upperArm, 0, -pose.armSpread);
+  set("LeftFoot", 0.4);
+  set("RightFoot", 0.4);
+  set("LeftArm", pose.upperArm, -0.25, -pose.armSpread);
+  set("RightArm", pose.upperArm, 0.25, pose.armSpread);
   set("LeftForeArm", 0, pose.forearm, 0);
   set("RightForeArm", 0, -pose.forearm, 0);
   set("LeftShoulder", 0, 0, 0);

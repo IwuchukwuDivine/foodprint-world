@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { MODEL_KEYS, modelUrl, type ModelKey } from "~/utils/world/manifest";
+import { MODEL_KEYS, CHARACTER_KEYS, modelUrl, type ModelKey } from "~/utils/world/manifest";
 
 export interface LoadedModel {
   key: ModelKey;
@@ -19,7 +19,7 @@ export interface LoadedModel {
 export function useAssets() {
   const progress = ref(0);
   const loaded = ref(0);
-  const total = MODEL_KEYS.length;
+  const total = MODEL_KEYS.length - CHARACTER_KEYS.length;
   const registry = new Map<ModelKey, LoadedModel>();
 
   const manager = new THREE.LoadingManager();
@@ -48,9 +48,15 @@ export function useAssets() {
     return model;
   }
 
+  /** Everything except the Kenney characters, which are only a fallback. */
   async function loadAll() {
-    await Promise.all(MODEL_KEYS.map((key) => loadOne(key)));
+    const keys = MODEL_KEYS.filter((key) => !CHARACTER_KEYS.includes(key));
+    await Promise.all(keys.map((key) => loadOne(key)));
     progress.value = 1;
+  }
+
+  async function loadKeys(keys: ModelKey[]) {
+    await Promise.all(keys.filter((key) => !registry.has(key)).map((key) => loadOne(key)));
   }
 
   function get(key: ModelKey): LoadedModel {
@@ -82,7 +88,7 @@ export function useAssets() {
     registry.clear();
   }
 
-  return { progress, loaded, total, loadAll, get, instance, dispose };
+  return { progress, loaded, total, loadAll, loadKeys, get, instance, dispose };
 }
 
 export type Assets = ReturnType<typeof useAssets>;
