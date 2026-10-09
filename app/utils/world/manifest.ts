@@ -102,6 +102,8 @@ export const MODEL_KEYS = [
   "nature/flower_yellowA",
   "nature/flower_redA",
   "nature/flower_purpleA",
+  // bikes
+  "bikes/motorcycle",
   // characters
   "characters/character-male-a",
   "characters/character-male-c",

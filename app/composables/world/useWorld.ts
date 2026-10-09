@@ -13,7 +13,9 @@ import { useTraffic } from "~/composables/world/useTraffic";
 import { usePedestrians } from "~/composables/world/usePedestrians";
 import { useSmoke } from "~/composables/world/useSmoke";
 import { useNightLights } from "~/composables/world/useNightLights";
-import { useRiderVan } from "~/composables/world/useRiderVan";
+import { useRiderBike } from "~/composables/world/useRiderBike";
+import { useAvatars } from "~/composables/world/useAvatars";
+import { AgentRegistry } from "~/utils/world/agents";
 import { useOrderSim } from "~/composables/world/useOrderSim";
 import { useKitchenGlow } from "~/composables/world/useKitchenGlow";
 import { useWorldStore } from "~/stores/world";
@@ -36,6 +38,8 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
   const celebrate = () => import("~/composables/useConfetti").then((m) => m.default().burst()).catch(() => {});
   const ctx = useRenderer(stage, labelLayer);
   const assets = useAssets();
+  const avatars = useAvatars(assets);
+  const registry = new AgentRegistry();
   const input = useInput();
   const dayNight = useDayNight(ctx.scene, ctx.renderer, ctx.touch);
   const camera = useFollowCamera(ctx.camera, stage, ctx.touch);
@@ -47,7 +51,7 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
   let pedestrians: ReturnType<typeof usePedestrians> | null = null;
   let smoke: ReturnType<typeof useSmoke> | null = null;
   let nightLights: ReturnType<typeof useNightLights> | null = null;
-  let van: ReturnType<typeof useRiderVan> | null = null;
+  let van: ReturnType<typeof useRiderBike> | null = null;
   let sim: ReturnType<typeof useOrderSim> | null = null;
   let glow: ReturnType<typeof useKitchenGlow> | null = null;
   let billboards: THREE.Object3D[] = [];
@@ -55,8 +59,9 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
   let followingRider = false;
   const focus = new THREE.Vector3(13 * TILE, 0, 13 * TILE);
 
-  const stopProgress = watch(assets.progress, (p) => {
-    world.loading.progress = p;
+  // Kenney models are most of the bytes; the avatars stream in after them.
+  const stopProgress = watch([assets.progress, avatars.progress], ([a, b]) => {
+    world.loading.progress = a * 0.7 + b * 0.3;
   });
 
   function followPlayer() {
@@ -141,6 +146,7 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
     if (!city || !player) return;
     player.animate(dt);
     pedestrians?.animate(dt);
+    van?.animate(dt);
     smoke?.update(dt);
     glow?.update(dt, player.group.position, order.activeOrder?.status === "preparing" ? order.activeOrder.kitchenSlug : null);
     camera.update(dt, player.state.moving || followingRider);
@@ -156,20 +162,21 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
   async function boot() {
     try {
       await assets.loadAll();
+      await avatars.load();
       city = buildCity(assets, walkToKitchen);
       ctx.scene.add(city.root);
       city.root.traverse((o) => {
         if (o.name === "billboard") billboards.push(o);
       });
-      player = usePlayer(assets, city, ctx.scene);
+      player = usePlayer(avatars, city, ctx.scene, registry);
       camera.setColliders(city.colliders);
       followPlayer();
-      traffic = useTraffic(assets, ctx.scene, city, ctx.touch ? 7 : 11);
-      pedestrians = usePedestrians(assets, ctx.scene, city, ctx.touch ? 10 : 16);
+      traffic = useTraffic(assets, ctx.scene, city, registry, ctx.touch ? 7 : 11);
+      pedestrians = usePedestrians(avatars, ctx.scene, city, registry, ctx.touch ? 10 : 16);
       smoke = useSmoke(ctx.scene, city);
       nightLights = useNightLights(ctx.scene, city.placements);
       glow = useKitchenGlow(city);
-      const theVan = useRiderVan(assets, ctx.scene, city, {
+      const theVan = useRiderBike(assets, avatars, ctx.scene, city, registry, {
         reachedKitchen: () => sim?.onReachedKitchen(),
         reachedHome: () => sim?.onReachedHome(),
         returned: () => sim?.onReturned(),
@@ -191,7 +198,7 @@ export function useWorld(stage: HTMLElement, labelLayer: HTMLElement) {
           for (let i = 0; i < n; i++) update(1 / 60);
           render(seconds);
         };
-        (window as unknown as { __world: unknown }).__world = { city, player, camera, input, ctx, assets, api, dayNight, van, traffic, order, sim, step };
+        (window as unknown as { __world: unknown }).__world = { city, player, camera, input, ctx, assets, avatars, registry, api, dayNight, van, traffic, order, sim, step, THREE };
       }
     } catch (err) {
       console.error("world failed to boot", err);

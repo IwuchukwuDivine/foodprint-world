@@ -91,15 +91,21 @@ const canFollow = computed(
   () => active.value?.riderPhase === "to_kitchen" || active.value?.riderPhase === "to_home",
 );
 
-/* Collapsed by default so the world stays visible; every status change pops
-   it open, because the change is the news. */
+/* Open by default where there is room (the desktop column), collapsed on a
+   phone so the world stays visible. Moments that need the player (a rider at
+   the door, food delivered, an order cancelled) pop it open on every width. */
 const expanded = ref(false);
+onMounted(() => {
+  expanded.value = window.matchMedia("(min-width: 1024px)").matches;
+});
 watch(
   () => [active.value?.status, active.value?.riderPhase],
   () => {
-    if (active.value) expanded.value = true;
+    if (!active.value) return;
+    if (active.value.riderPhase === "waiting" || isTerminalOrderStatus(active.value.status)) {
+      expanded.value = true;
+    }
   },
-  { immediate: true },
 );
 
 function setFollow(follow: boolean) {

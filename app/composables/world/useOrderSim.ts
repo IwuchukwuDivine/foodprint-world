@@ -1,7 +1,7 @@
 import type { useOrderStore } from "~/stores/order";
 import type { useShopStore } from "~/stores/shop";
 import type { useWorldStore } from "~/stores/world";
-import type { RiderVan } from "~/composables/world/useRiderVan";
+import type { RiderBike } from "~/composables/world/useRiderBike";
 import { ACCEPT_MS, START_COOKING_MS, READY_TO_ASSIGN_MS } from "~/utils/constants/simTimings";
 import { isTerminalOrderStatus } from "~/utils/constants/orderStatus";
 
@@ -20,7 +20,7 @@ export function useOrderSim(
   order: ReturnType<typeof useOrderStore>,
   shop: ReturnType<typeof useShopStore>,
   world: ReturnType<typeof useWorldStore>,
-  van: RiderVan,
+  van: RiderBike,
   hooks: OrderSimHooks,
 ) {
   let acc = 0;

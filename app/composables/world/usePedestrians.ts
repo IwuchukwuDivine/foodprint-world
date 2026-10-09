@@ -1,35 +1,38 @@
 import * as THREE from "three";
 import type { Vec2, Tile } from "~/utils/types/world";
-import type { Assets } from "~/composables/world/useAssets";
 import type { City } from "~/composables/world/useCityBuilder";
-import { CHARACTER_KEYS } from "~/utils/world/manifest";
+import type { Avatars, Human } from "~/composables/world/useAvatars";
+import type { Agent, AgentRegistry } from "~/utils/world/agents";
 import { astar, walkCost } from "~/utils/world/astar";
 import { TILE } from "~/utils/world/tileMap";
-import { makeAnimator, type Animator } from "~/utils/world/animations";
+import { buildLanePath, type P2 } from "~/utils/world/lanePath";
+import { followPolyline, dampAngle, type PolylineState } from "~/utils/world/steering";
 import { seededRandom, pick } from "~/utils/world/seededRandom";
-import { dampAngle } from "~/utils/world/steering";
 
 interface Walker {
+  human: Human;
   group: THREE.Group;
-  animator: Animator;
-  path: Vec2[];
-  idx: number;
+  agent: Agent;
+  path: P2[];
+  poly: PolylineState;
   heading: number;
   speed: number;
   wait: number;
-  offset: { x: number; z: number };
+  walking: boolean;
 }
 
+/** Pedestrians keep to the pavement edge of the road, on their right. */
+const SIDEWALK_OFFSET = TILE * 0.41;
+
 /**
- * Awka's foot traffic: a handful of characters strolling the sidewalks between
- * random road tiles, pausing now and then. Each gets a small lateral offset so
- * they do not walk down the exact centre of the road.
+ * Awka's foot traffic: people strolling the pavements between random road
+ * tiles, pausing now and then, stepping around each other and the player,
+ * and waiting for a vehicle that is about to cross their path.
  */
-export function usePedestrians(assets: Assets, scene: THREE.Scene, city: City, count: number) {
+export function usePedestrians(avatars: Avatars, scene: THREE.Scene, city: City, registry: AgentRegistry, count: number) {
   const rand = seededRandom(99);
   const roads: Tile[] = city.grid.tiles.filter((t) => t.kind === "road");
   const walkers: Walker[] = [];
-  const SCALE = 3;
 
   function randomGoal(from: Vec2): Vec2 {
     for (let i = 0; i < 10; i++) {
@@ -45,70 +48,74 @@ export function usePedestrians(assets: Assets, scene: THREE.Scene, city: City, c
     const goal = randomGoal(from);
     const path = astar(city.grid, from, goal, walkCost(city.grid));
     if (path && path.length > 1) {
-      w.path = path.slice(1);
-      w.idx = 0;
-      w.speed = 2.2 + rand() * 1.1;
+      w.path = buildLanePath(path, SIDEWALK_OFFSET);
+      w.poly = { idx: 0, t: 0 };
+      w.speed = 2.0 + rand() * 1.0;
+      w.walking = true;
     } else {
       w.wait = 1;
     }
   }
 
   for (let i = 0; i < count; i++) {
-    const key = CHARACTER_KEYS[i % CHARACTER_KEYS.length]!;
-    const model = assets.instance(key);
-    model.scale.setScalar(SCALE);
-    model.traverse((o) => {
-      o.castShadow = true;
-    });
+    const human = avatars.createHuman(i);
     const group = new THREE.Group();
-    group.add(model);
+    group.add(human.root);
     const start = pick(roads, rand());
-    const offset = { x: (rand() - 0.5) * TILE * 0.6, z: (rand() - 0.5) * TILE * 0.6 };
-    group.position.set(start.x * TILE + offset.x, 0, start.y * TILE + offset.z);
+    group.position.set(start.x * TILE + (rand() - 0.5) * TILE * 0.5, 0, start.y * TILE + (rand() - 0.5) * TILE * 0.5);
     scene.add(group);
-    const animator = makeAnimator(model, assets.get(key).gltf.animations);
-    animator.play("idle");
-    const w: Walker = { group, animator, path: [], idx: 0, heading: rand() * 6.28, speed: 2.5, wait: rand() * 3, offset };
-    walkers.push(w);
+    human.animator.play("idle");
+    const agent = registry.add({ kind: "pedestrian", position: group.position, radius: 0.5, heading: 0, speed: 0, active: true });
+    walkers.push({ human, group, agent, path: [], poly: { idx: 0, t: 0 }, heading: rand() * 6.28, speed: 2.5, wait: rand() * 3, walking: false });
   }
 
   function update(dt: number) {
     for (const w of walkers) {
       if (w.wait > 0) {
         w.wait -= dt;
-        w.animator.play("idle");
+        w.human.animator.play("idle");
+        w.agent.speed = 0;
         if (w.wait <= 0) send(w);
         continue;
       }
-      const next = w.path[w.idx];
-      if (!next) {
+      if (!w.walking) {
         w.wait = 1 + rand() * 4;
         continue;
       }
-      const tx = next.x * TILE + w.offset.x;
-      const tz = next.y * TILE + w.offset.z;
-      const dx = tx - w.group.position.x;
-      const dz = tz - w.group.position.z;
-      const dist = Math.hypot(dx, dz);
-      if (dist < 0.3) {
-        w.idx++;
+      // Hold back for a vehicle about to pass in front.
+      const car = registry.blockerAhead(w.agent, 2.6, 1.2, ["vehicle"]);
+      if (car && car.speed > 0.5) {
+        w.human.animator.play("idle");
+        w.agent.speed = 0;
         continue;
       }
-      w.heading = dampAngle(w.heading, Math.atan2(dx, dz), 8, dt);
+      const res = followPolyline(w.path, w.poly, w.speed * dt);
+      w.heading = dampAngle(w.heading, res.heading, 8, dt);
       w.group.rotation.y = w.heading;
-      const step = Math.min(dist, w.speed * dt);
-      w.group.position.x += (dx / dist) * step;
-      w.group.position.z += (dz / dist) * step;
-      w.animator.play("walk", 1.05);
+      w.group.position.set(res.x, 0, res.z);
+      // Step around other people.
+      const sep = registry.separate(w.agent, ["pedestrian", "player"], 0.5);
+      w.group.position.x = sep.x;
+      w.group.position.z = sep.z;
+      w.agent.heading = w.heading;
+      w.agent.speed = w.speed;
+      w.human.animator.play("walk", 1.0);
+      if (res.done) {
+        w.walking = false;
+        w.wait = 1 + rand() * 4;
+      }
     }
   }
 
   function animate(dt: number) {
-    for (const w of walkers) w.animator.update(dt);
+    for (const w of walkers) w.human.animator.update(dt);
   }
 
   function dispose() {
-    for (const w of walkers) w.group.removeFromParent();
+    for (const w of walkers) {
+      registry.remove(w.agent);
+      w.group.removeFromParent();
+    }
   }
 
   return { update, animate, dispose };

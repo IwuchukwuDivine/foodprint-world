@@ -1,35 +1,30 @@
 import * as THREE from "three";
 import type { Vec2 } from "~/utils/types/world";
-import type { Assets } from "~/composables/world/useAssets";
 import type { City } from "~/composables/world/useCityBuilder";
-import { PLAYER_MODEL } from "~/utils/world/manifest";
+import type { Avatars } from "~/composables/world/useAvatars";
+import type { Agent, AgentRegistry } from "~/utils/world/agents";
 import { TILE } from "~/utils/world/tileMap";
 import { Grid } from "~/utils/world/grid";
 import { astar, walkCost } from "~/utils/world/astar";
 import { pushOut, nearbyBoxes } from "~/utils/world/collision";
-import { makeAnimator } from "~/utils/world/animations";
 import { dampAngle, moveTowards } from "~/utils/world/steering";
 
 export const WALK_SPEED = 3.4;
 export const RUN_SPEED = 6.2;
-const RADIUS = 0.55;
-const CHARACTER_SCALE = 3;
+const RADIUS = 0.5;
 
 /**
  * The third-person character: camera-relative movement, tile walkability plus
  * box push-out, A* auto-walk when a label is tapped, and idle/walk/run clips.
+ * People and vehicles are solid: the player is pushed out of them, and
+ * vehicles stop for the player in turn.
  */
-export function usePlayer(assets: Assets, city: City, scene: THREE.Scene) {
-  const model = assets.instance(PLAYER_MODEL);
-  model.scale.setScalar(CHARACTER_SCALE);
-  model.traverse((o) => {
-    o.castShadow = true;
-    o.receiveShadow = false;
-  });
+export function usePlayer(avatars: Avatars, city: City, scene: THREE.Scene, registry: AgentRegistry) {
+  const human = avatars.createHuman(0, "m");
   const group = new THREE.Group();
-  group.add(model);
+  group.add(human.root);
   scene.add(group);
-  const animator = makeAnimator(model, assets.get(PLAYER_MODEL).gltf.animations);
+  const animator = human.animator;
   animator.play("idle");
 
   const state = {
@@ -41,6 +36,8 @@ export function usePlayer(assets: Assets, city: City, scene: THREE.Scene) {
     autoIdx: 0,
     autoTarget: null as string | null,
   };
+
+  const agent: Agent = registry.add({ kind: "player", position: group.position, radius: RADIUS, heading: 0, speed: 0, active: true });
 
   // Spawn on the road outside home, facing along the street so the camera
   // sits on the road behind the player rather than inside the house.
@@ -125,28 +122,34 @@ export function usePlayer(assets: Assets, city: City, scene: THREE.Scene) {
       const pushed = pushOut(nx, nz, RADIUS, boxes);
       nx = pushed.x;
       nz = pushed.z;
-      // Keep inside the map.
       const limit = (city.grid.size - 1) * TILE + TILE * 0.4;
       nx = THREE.MathUtils.clamp(nx, -TILE * 0.4, limit);
       nz = THREE.MathUtils.clamp(nz, -TILE * 0.4, limit);
       group.position.set(nx, 0, nz);
     }
+    // People and vehicles are solid.
+    const sep = registry.separate(agent, ["pedestrian", "vehicle"], 1);
+    group.position.x = sep.x;
+    group.position.z = sep.z;
     group.rotation.y = state.heading;
     state.moving = state.speed > 0.2;
+    agent.heading = state.heading;
+    agent.speed = state.speed;
   }
 
   function animate(dt: number) {
     if (state.speed < 0.2) animator.play("idle");
-    else if (state.speed < WALK_SPEED + 0.6) animator.play("walk", THREE.MathUtils.clamp(state.speed / WALK_SPEED, 0.7, 1.3));
-    else animator.play("run", THREE.MathUtils.clamp(state.speed / RUN_SPEED, 0.8, 1.2));
+    else if (state.speed < WALK_SPEED + 0.6) animator.play("walk", THREE.MathUtils.clamp(state.speed / WALK_SPEED, 0.75, 1.25));
+    else animator.play("run", THREE.MathUtils.clamp(state.speed / RUN_SPEED, 0.85, 1.15));
     animator.update(dt);
   }
 
   function dispose() {
+    registry.remove(agent);
     group.removeFromParent();
   }
 
-  return { group, state, tile, walkTo, cancelWalk, teleport, update, animate, dispose };
+  return { group, human, state, tile, walkTo, cancelWalk, teleport, update, animate, dispose };
 }
 
 export type Player = ReturnType<typeof usePlayer>;

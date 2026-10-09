@@ -1,8 +1,12 @@
 <template>
   <div class="hud-layer">
     <HudTopBar />
+    <HudTicker />
+    <HudMinimap />
     <HudJoystick v-if="touch && !shop.openSheet" />
     <HudEnterPrompt />
+    <HudActiveOrderCard />
+    <HudTrayPill />
     <HudFpsBadge v-if="debug" />
   </div>
 </template>
