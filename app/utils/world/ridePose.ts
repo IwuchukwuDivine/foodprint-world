@@ -20,9 +20,9 @@ export const DEFAULT_RIDE_POSE: RidePose = {
   thigh: 1.25,
   thighSpread: 0.75,
   knee: -1.6,
-  upperArm: 1.0,
+  upperArm: 0.8,
   armSpread: 0.75,
-  forearm: 1.35,
+  forearm: 1.2,
   head: -0.3,
 };
 
@@ -44,8 +44,8 @@ export function applyRidePose(root: THREE.Object3D, pose: RidePose = DEFAULT_RID
   set("RightFoot", 0.4);
   set("LeftArm", pose.upperArm, -0.25, -pose.armSpread);
   set("RightArm", pose.upperArm, 0.25, pose.armSpread);
-  set("LeftForeArm", 0, pose.forearm, 0);
-  set("RightForeArm", 0, -pose.forearm, 0);
+  set("LeftForeArm", pose.forearm, 0, 0);
+  set("RightForeArm", pose.forearm, 0, 0);
   set("LeftShoulder", 0, 0, 0);
   set("RightShoulder", 0, 0, 0);
 }
