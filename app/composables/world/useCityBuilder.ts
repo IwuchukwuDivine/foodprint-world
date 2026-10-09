@@ -124,13 +124,22 @@ export function buildCity(assets: Assets, onLabelClick: (slug: string) => void):
     const materials = ownMaterials(model);
 
     // Signboard above the door, facing the road.
+    // Text on the front, plain orange on the back, so it never reads mirrored.
     const sign = new THREE.Mesh(
       new THREE.PlaneGeometry(3.2, 0.8),
-      new THREE.MeshBasicMaterial({ map: makeSignTexture(kitchen.name), transparent: true, side: THREE.DoubleSide }),
+      new THREE.MeshBasicMaterial({ map: makeSignTexture(kitchen.name), transparent: true, side: THREE.FrontSide }),
     );
     const height = m.h * scale;
     sign.position.set(0, Math.min(height + 0.55, 6.2), (m.d * scale) / 2 + 0.08);
     group.add(sign);
+    const signBack = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.2, 0.8),
+      new THREE.MeshBasicMaterial({ color: 0xfb6b05, side: THREE.FrontSide }),
+    );
+    signBack.position.copy(sign.position);
+    signBack.position.z -= 0.02;
+    signBack.rotation.y = Math.PI;
+    group.add(signBack);
     const post = new THREE.Mesh(
       new THREE.BoxGeometry(0.08, 0.5, 0.08),
       new THREE.MeshStandardMaterial({ color: 0x3b2d22 }),
